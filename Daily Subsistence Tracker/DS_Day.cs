@@ -9,17 +9,21 @@ namespace Daily_Subsistence_Tracker
 {
     public class DS_Day : ContentPage
     {
-
+        string DeploymentName { get; set; }
+        DateTime DayName { get; set; }
         public DS_Day(string thisDeployment, DateTime thisDay)
         {
+            DeploymentName = thisDeployment;
+            DayName = thisDay;
+
             NavigationPage.SetHasNavigationBar(this, false);
             BackgroundColor = App.colours[2];
             Content = DrawLayout(thisDeployment,thisDay);
         }
 
-        private StackLayout DrawLayout(string thisDeployment, DateTime thisDay)
+        public Grid DrawLayout(string thisDeployment, DateTime thisDay)
         {
-            StackLayout thisLayout = new StackLayout { Padding = 1, Spacing = 1 };
+            StackLayout thisLayout = new StackLayout { Padding = 1, Spacing = 5, MinimumHeightRequest = App.ScreenHeight };
 
             int i = 1;
 
@@ -35,7 +39,7 @@ namespace Daily_Subsistence_Tracker
                 if (line.Desc == null)
                 {
                     grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.CommentDots,20,true), 5, 6, 0, 1);
-                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Ban,30,false), 5, 6, 0, 1);
+                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Ban,35,false), 5, 6, 0, 1);
                 }
                 else
                 {
@@ -45,7 +49,7 @@ namespace Daily_Subsistence_Tracker
                 if (line.Reciept == null)
                 {
                     grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Image, 20,true), 6, 7, 0, 1);
-                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Ban,30,false), 6, 7, 0, 1);
+                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Ban,35,false), 6, 7, 0, 1);
                 }
                 else
                 {
@@ -95,7 +99,12 @@ namespace Daily_Subsistence_Tracker
                 i++;
             }
 
-            return thisLayout;
+            Grid masterGrid = new Grid { Padding = 0, RowSpacing = 0, ColumnSpacing = 0, Margin = 0 };
+            masterGrid.Children.Add(HeaderGrid(), 0, 1, 0, 1);
+            masterGrid.Children.Add(new ScrollView { Content = thisLayout }, 0, 1, 1, 9);
+            masterGrid.Children.Add(FooterGrid(), 0, 1, 9, 10);
+
+            return masterGrid;
         }
 
         private Label MakeLabel(string text)
@@ -166,7 +175,7 @@ namespace Daily_Subsistence_Tracker
         private Label FALabel(string text, int size, bool onBottom)
         {
             Label BanLabel = MakeLabel(text);
-            BanLabel.FontSize = 30;
+            BanLabel.FontSize = size;
             BanLabel.FontFamily = "fa.otf#fa";
             if (onBottom == true)
             {
@@ -174,10 +183,39 @@ namespace Daily_Subsistence_Tracker
             }
             else
             {
-                BanLabel.TextColor = default;
+                BanLabel.TextColor = Color.Black;
             }
-            BanLabel.InputTransparent = true;
+            if (text == FontAwesomeIcons.FontAwesomeIcons.Ban)
+            {
+                BanLabel.InputTransparent = true;
+            }
             return BanLabel;
+        }
+        private Grid HeaderGrid()
+        {
+            Grid grid = new Grid { Padding = 5, HeightRequest = App.ScreenHeight * 0.1, BackgroundColor = App.colours[0] };
+            grid.Children.Add(new Label
+            {
+                Text = DeploymentName,
+                FontAttributes = FontAttributes.Bold,
+                FontSize = 25,
+                TextColor = Color.WhiteSmoke,
+                VerticalTextAlignment = TextAlignment.Center
+            }, 0, 10, 0, 1);
+            grid.Children.Add(new Label
+            {
+                Text = DayName.ToLongDateString().ToString(),
+                FontAttributes = FontAttributes.Bold,
+                FontSize = 15,
+                TextColor = Color.WhiteSmoke,
+                VerticalTextAlignment = TextAlignment.Center
+            }, 0, 10, 1, 2);
+
+            return grid;
+        }
+        private Grid FooterGrid()
+        {
+            return new Grid { BackgroundColor = App.colours[0] };
         }
     }
 }

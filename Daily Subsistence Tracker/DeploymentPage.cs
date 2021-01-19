@@ -18,6 +18,7 @@ namespace Daily_Subsistence_Tracker
             DeploymentName = input_string;
             Content = drawLayout();
         }
+
         private Grid drawLayout()
         {
             Grid masterGrid = new Grid { RowSpacing = 0, ColumnSpacing = 0, Padding = 0, Margin = 0 };
@@ -58,8 +59,34 @@ namespace Daily_Subsistence_Tracker
                         VerticalTextAlignment = TextAlignment.Center
                     };
 
-                    thisLabel.GestureRecognizers.Add(tap);
                     #endregion
+
+                    #region Cash Total
+                    decimal cashtotal = 0;
+                    int lines = 0;
+                    foreach (MyItem item in App.SavedLines[DeploymentName][line])
+                    {
+                        lines += 1;
+                        cashtotal += item.Amount.Value;
+                    }
+                    Label linesLabel = MakeLabel("Lines: " + lines, 20);
+                    linesLabel.HorizontalTextAlignment = TextAlignment.Start;
+                    Label cashTotalLabel = MakeLabel("£" + cashtotal.ToString(), 30);
+                    cashTotalLabel.HorizontalTextAlignment = TextAlignment.End;
+                    if (cashtotal > 25)
+                    {
+                        cashTotalLabel.TextColor = Color.Red;
+                    }
+                    else
+                    {
+                        cashTotalLabel.TextColor = Color.LimeGreen;
+                    }
+
+                    #endregion
+
+                    thisLabel.GestureRecognizers.Add(tap);
+                    linesLabel.GestureRecognizers.Add(tap);
+                    cashTotalLabel.GestureRecognizers.Add(tap);
 
                     #region Delete Button
                     Label deleteLabel = new Label
@@ -100,6 +127,8 @@ namespace Daily_Subsistence_Tracker
 
                     grid.Children.Add(thisLabel, 0, 7, 0, 1);
                     grid.Children.Add(deleteLabel, 7, 8, 0, 1);
+                    grid.Children.Add(linesLabel, 0, 4, 1, 2);
+                    grid.Children.Add(cashTotalLabel, 0, 8, 1, 2);
                     #endregion
 
                     thisLayout.Children.Add(new Frame { CornerRadius = 10, Margin = 5, Padding = 0, Content = grid });
@@ -127,6 +156,14 @@ namespace Daily_Subsistence_Tracker
         }
         private Grid HeaderGrid()
         {
+            Label emailLabel = MakeLabel("e",20);
+            TapGestureRecognizer tap1 = new TapGestureRecognizer();
+            tap1.Tapped += async (s, e) =>
+            {
+                await Email.ComposeAsync("Your expenses report for " + DeploymentName + ", from Watch&Shoot UK.", App.SavedLines[DeploymentName].ToString(), "markwileman@ymail.com");
+            };
+            emailLabel.GestureRecognizers.Add(tap1);
+
             Grid grid = new Grid { HeightRequest = App.ScreenHeight * 0.1, BackgroundColor = App.colours[0] };
             grid.Children.Add(new Label
             {
@@ -138,6 +175,7 @@ namespace Daily_Subsistence_Tracker
                 Padding = 10
             }, 0, 9, 0, 1);
             grid.Children.Add(AddLine(), 8, 10, 0, 1);
+            grid.Children.Add(emailLabel, 6, 8, 0, 1);
             return grid;
         }
         private Grid FooterGrid()
@@ -157,7 +195,6 @@ namespace Daily_Subsistence_Tracker
             return thisLabel;
             #endregion
         }
-
         private StackLayout AddNewLineForm()
         {
             FileResult photo = null;
@@ -296,7 +333,8 @@ namespace Daily_Subsistence_Tracker
                 HorizontalTextAlignment = TextAlignment.Start,
                 VerticalTextAlignment = TextAlignment.Center,
                 FontAttributes = FontAttributes.Bold,
-                TextColor = Color.WhiteSmoke
+                TextColor = Color.WhiteSmoke,
+                Padding = 10
             };
         }
     }

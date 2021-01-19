@@ -19,7 +19,6 @@ namespace Daily_Subsistence_Tracker
     public partial class App : Application
     {
         public static Dictionary<string, Dictionary<DateTime, List<MyItem>>> SavedLines { get; set; }
-
         public static int ScreenHeight { get; set; }
         public static int ScreenWidth { get; set; }
         public static List<Color> colours { get; set; }
@@ -37,8 +36,8 @@ namespace Daily_Subsistence_Tracker
                 Color.FromHex("#958b60"),
                 Color.FromHex("#9d9b80")
                 };
-            SavedLines = new Dictionary<string, Dictionary<DateTime, List<MyItem>>>();
-            //SavedLines = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<DateTime, List<MyItem>>>>(json);
+
+            OnStart();
             MainPage = new NavigationPage (new StartPage());
         }
         public static Color GetRandomColour()
@@ -46,20 +45,23 @@ namespace Daily_Subsistence_Tracker
             Random r = new Random();
             return colours[r.Next(3,7)];
         }
-
         protected override void OnStart()
         {
+            if (App.Current.Properties.ContainsKey("SavedData"))
+            {
+                SavedLines = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<DateTime, List<MyItem>>>>(Application.Current.Properties["SavedData"].ToString());
+            }
+            else
+            {
+                SavedLines = new Dictionary<string, Dictionary<DateTime, List<MyItem>>>();
+            }
         }
-
         protected override void OnSleep()
         {
+            Application.Current.Properties["SavedData"] = JsonConvert.SerializeObject(App.SavedLines);
         }
-
         protected override void OnResume()
         {
-        }
-
-        
-
+        }     
     }
 }
