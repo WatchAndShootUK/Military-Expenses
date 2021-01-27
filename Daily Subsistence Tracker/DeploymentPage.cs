@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -11,18 +12,33 @@ namespace Daily_Subsistence_Tracker
     public class DeploymentPage : ContentPage
     {
         private static string DeploymentName { get; set; }
+        private static Grid masterGrid { get; set; }
+
+
         public DeploymentPage(string input_string)
         {
             NavigationPage.SetHasNavigationBar(this, false);
             BackgroundColor = App.colours[2];
             DeploymentName = input_string;
+        }
+        protected override void OnAppearing()
+        {
             Content = drawLayout();
+            //masterGrid.Children.Add(new ScrollView { Content = DrawThisLayout() }, 0, 1, 1, 9);
         }
 
         private Grid drawLayout()
         {
             Grid masterGrid = new Grid { RowSpacing = 0, ColumnSpacing = 0, Padding = 0, Margin = 0 };
+            masterGrid.Children.Add(HeaderGrid(), 0, 1, 0, 1);
+            masterGrid.Children.Add(new ScrollView { Content = DrawThisLayout() }, 0, 1, 1, 9);
+            masterGrid.Children.Add(FooterGrid(), 0, 1, 9, 10);
 
+            return masterGrid;
+        }
+        
+        private StackLayout DrawThisLayout()
+        {
             StackLayout thisLayout = new StackLayout { Spacing = 0, MinimumHeightRequest = App.ScreenHeight };
 
             List<DateTime> datesorter = new List<DateTime>();
@@ -62,25 +78,11 @@ namespace Daily_Subsistence_Tracker
                     #endregion
 
                     #region Cash Total
-                    decimal cashtotal = 0;
-                    int lines = 0;
-                    foreach (MyItem item in App.SavedLines[DeploymentName][line])
-                    {
-                        lines += 1;
-                        cashtotal += item.Amount.Value;
-                    }
-                    Label linesLabel = MakeLabel("Lines: " + lines, 20);
+
+                    Label linesLabel = MakeLabel("Lines: " + App.SavedLines[DeploymentName][line].Count(), 20);
                     linesLabel.HorizontalTextAlignment = TextAlignment.Start;
-                    Label cashTotalLabel = MakeLabel("£" + cashtotal.ToString(), 30);
+                    Label cashTotalLabel = MakeLabel("£" + App.SavedLines[DeploymentName][line].Sum(x => x.Amount.Value), 30);
                     cashTotalLabel.HorizontalTextAlignment = TextAlignment.End;
-                    if (cashtotal > 25)
-                    {
-                        cashTotalLabel.TextColor = Color.Red;
-                    }
-                    else
-                    {
-                        cashTotalLabel.TextColor = Color.LimeGreen;
-                    }
 
                     #endregion
 
@@ -148,12 +150,9 @@ namespace Daily_Subsistence_Tracker
                 });
             }
 
-            masterGrid.Children.Add(HeaderGrid(), 0, 1, 0, 1);
-            masterGrid.Children.Add(new ScrollView { Content = thisLayout }, 0, 1, 1, 9);
-            masterGrid.Children.Add(FooterGrid(), 0, 1, 9, 10);
-
-            return masterGrid;
+            return thisLayout;
         }
+
         private Grid HeaderGrid()
         {
             Label emailLabel = MakeLabel("e",20);
