@@ -19,7 +19,7 @@ namespace Daily_Subsistence_Tracker.CalcPages
                 Spacing = 20,
                 Children =
             {
-                MakeLabel("Use the tool below to calculate what the Motor Mileage Allowance is for a given journey.", 20),
+                MakeLabel("Use the tool below to calculate what the Motor Mileage Allowance (MMA) is for a given journey.", 20),
                 MakeLabel("Enter mileage:",18),
                 mileageEntry(),
                 calcButton(),
