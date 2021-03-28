@@ -1,7 +1,6 @@
 ﻿using Rg.Plugins.Popup.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 
 using Xamarin.Forms;
 
@@ -18,28 +17,26 @@ namespace Daily_Subsistence_Tracker
 
             NavigationPage.SetHasNavigationBar(this, false);
             BackgroundColor = App.colours[2];
-            Content = DrawLayout(thisDeployment,thisDay);
+            Content = DrawLayout(thisDeployment, thisDay);
         }
 
         public Grid DrawLayout(string thisDeployment, DateTime thisDay)
         {
             StackLayout thisLayout = new StackLayout { Padding = 1, Spacing = 5, MinimumHeightRequest = App.ScreenHeight };
 
-            int i = 1;
-
             foreach (MyItem line in App.SavedLines[thisDeployment][thisDay])
             {
                 #region Draw Results Grid
                 Grid grid = new Grid { BackgroundColor = App.GetRandomColour() };
 
-                grid.Children.Add(MakeLabel(i.ToString()),0,1,0,1);
-                grid.Children.Add(MakeLabel(line.Time.ToString()),1,3,0,1);
-                grid.Children.Add(MakeLabel(line.Amount.Key.ToString() + line.Amount.Value.ToString()), 3,5, 0, 1);
+                grid.Children.Add(MakeLabel(line.Line.ToString()), 0, 1, 0, 1);
+                grid.Children.Add(MakeLabel(line.Time.ToString()), 1, 3, 0, 1);
+                grid.Children.Add(MakeLabel(line.Amount.Key.ToString() + line.Amount.Value.ToString("##.00")), 3, 5, 0, 1);
 
                 if (line.Desc == null)
                 {
-                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.CommentDots,20,true), 5, 6, 0, 1);
-                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Ban,35,false), 5, 6, 0, 1);
+                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.CommentDots, 20, true), 5, 6, 0, 1);
+                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Ban, 35, false), 5, 6, 0, 1);
                 }
                 else
                 {
@@ -48,14 +45,14 @@ namespace Daily_Subsistence_Tracker
 
                 if (line.Reciept == null)
                 {
-                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Image, 20,true), 6, 7, 0, 1);
-                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Ban,35,false), 6, 7, 0, 1);
+                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Image, 20, true), 6, 7, 0, 1);
+                    grid.Children.Add(FALabel(FontAwesomeIcons.FontAwesomeIcons.Ban, 35, false), 6, 7, 0, 1);
                 }
                 else
                 {
-                    grid.Children.Add(ImageButton(line.Reciept.ToString()), 6,7,0, 1);
+                    grid.Children.Add(ImageButton(line.Reciept.ToString()), 6, 7, 0, 1);
                 }
-                grid.Children.Add(DeleteButton(),7,8,0,1);
+                grid.Children.Add(DeleteButton(), 7, 8, 0, 1);
 
 
 
@@ -83,39 +80,41 @@ namespace Daily_Subsistence_Tracker
                         if (answer == true)
                         {
                             App.SavedLines[thisDeployment][thisDay].Remove(line);
+                            if (line.Reciept != null) { File.Delete(line.Reciept); }
+                            App.UpdateCache();
                             Content = DrawLayout(thisDeployment, thisDay);
                         }
 
                     };
                     thisLabel.GestureRecognizers.Add(tap1);
-                    
-                
-                return thisLabel;
+
+
+                    return thisLabel;
                 }
                 #endregion
 
                 thisLayout.Children.Add(grid);
 
-                i++;
             }
 
             Grid masterGrid = new Grid { Padding = 0, RowSpacing = 0, ColumnSpacing = 0, Margin = 0 };
             masterGrid.Children.Add(HeaderGrid(), 0, 1, 0, 1);
             masterGrid.Children.Add(new ScrollView { Content = thisLayout }, 0, 1, 1, 9);
-            masterGrid.Children.Add(FooterGrid(), 0, 1, 9, 10);
+            masterGrid.Children.Add(App.FooterGrid(), 0, 1, 9, 10);
 
             return masterGrid;
         }
 
         private Label MakeLabel(string text)
         {
-            return new Label { 
+            return new Label
+            {
                 Padding = 5,
-                Text = text, 
-                FontSize = 20, 
-                TextColor = Color.WhiteSmoke, 
-                VerticalTextAlignment = TextAlignment.Center, 
-                HorizontalTextAlignment = TextAlignment.Center 
+                Text = text,
+                FontSize = 20,
+                TextColor = Color.WhiteSmoke,
+                VerticalTextAlignment = TextAlignment.Center,
+                HorizontalTextAlignment = TextAlignment.Center
             };
         }
         private Label RemarksButton(string remarks)
@@ -124,22 +123,22 @@ namespace Daily_Subsistence_Tracker
             thisLabel.FontFamily = "fa.otf#fa";
             thisLabel.FontAttributes = FontAttributes.Bold;
 
-                thisLabel.Text = FontAwesomeIcons.FontAwesomeIcons.CommentDots;
-                TapGestureRecognizer tap = new TapGestureRecognizer();
-                tap.Tapped += (s, e) =>
-                {
-                    PopupNavigation.PushAsync(new PopUp(
-                        new StackLayout
+            thisLabel.Text = FontAwesomeIcons.FontAwesomeIcons.CommentDots;
+            TapGestureRecognizer tap = new TapGestureRecognizer();
+            tap.Tapped += (s, e) =>
+            {
+                PopupNavigation.PushAsync(new PopUp(
+                    new StackLayout
+                    {
+                        BackgroundColor = App.GetRandomColour(),
+                        Children =
                         {
-                            BackgroundColor = App.GetRandomColour(),
-                            Children =
-                            {
                                 MakeLabel("Remarks"),
                                 MakeLabel(remarks)
-                            }
-                        }));
-                };
-                thisLabel.GestureRecognizers.Add(tap);
+                        }
+                    }));
+            };
+            thisLabel.GestureRecognizers.Add(tap);
 
             return thisLabel;
         }
@@ -149,26 +148,28 @@ namespace Daily_Subsistence_Tracker
             thisLabel.FontFamily = "fa.otf#fa";
             thisLabel.FontAttributes = FontAttributes.Bold;
 
-                thisLabel.Text = FontAwesomeIcons.FontAwesomeIcons.Image;
-                TapGestureRecognizer tap = new TapGestureRecognizer();
-                tap.Tapped += (s, e) =>
+            thisLabel.Text = FontAwesomeIcons.FontAwesomeIcons.Image;
+            TapGestureRecognizer tap = new TapGestureRecognizer();
+            tap.Tapped += (s, e) =>
+            {
+                Image thisImage = new Image
                 {
-                    PopupNavigation.PushAsync(new PopUp(
-                        new StackLayout
-                        {
-                            BackgroundColor = App.GetRandomColour(),
-                            Children =
-                            {
-                                MakeLabel("Reciept Image"),
-                                new Image
-                                {
-                                    Source = path
-                                },
-                                MakeLabel("Exit")
-                            }
-                        }));
+                    Source = path
                 };
-                thisLabel.GestureRecognizers.Add(tap);
+
+                PopupNavigation.PushAsync(new PopUp(
+                    new StackLayout
+                    {
+                        BackgroundColor = App.GetRandomColour(),
+                        Children =
+                        {
+                                MakeLabel("Reciept Image"),
+                                thisImage,
+                                MakeLabel("Exit"),
+                        }
+                    }));
+            };
+            thisLabel.GestureRecognizers.Add(tap);
 
             return thisLabel;
         }
@@ -212,10 +213,6 @@ namespace Daily_Subsistence_Tracker
             }, 0, 10, 1, 2);
 
             return grid;
-        }
-        private Grid FooterGrid()
-        {
-            return new Grid { BackgroundColor = App.colours[0] };
         }
     }
 }

@@ -1,9 +1,9 @@
-﻿using Rg.Plugins.Popup.Services;
+﻿using Newtonsoft.Json;
+using Rg.Plugins.Popup.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 
@@ -12,8 +12,6 @@ namespace Daily_Subsistence_Tracker
     public class DeploymentPage : ContentPage
     {
         private static string DeploymentName { get; set; }
-        private static Grid masterGrid { get; set; }
-
 
         public DeploymentPage(string input_string)
         {
@@ -32,11 +30,11 @@ namespace Daily_Subsistence_Tracker
             Grid masterGrid = new Grid { RowSpacing = 0, ColumnSpacing = 0, Padding = 0, Margin = 0 };
             masterGrid.Children.Add(HeaderGrid(), 0, 1, 0, 1);
             masterGrid.Children.Add(new ScrollView { Content = DrawThisLayout() }, 0, 1, 1, 9);
-            masterGrid.Children.Add(FooterGrid(), 0, 1, 9, 10);
+            masterGrid.Children.Add(App.FooterGrid(), 0, 1, 9, 10);
 
             return masterGrid;
         }
-        
+
         private StackLayout DrawThisLayout()
         {
             StackLayout thisLayout = new StackLayout { Spacing = 0, MinimumHeightRequest = App.ScreenHeight };
@@ -81,7 +79,7 @@ namespace Daily_Subsistence_Tracker
 
                     Label linesLabel = MakeLabel("Lines: " + App.SavedLines[DeploymentName][line].Count(), 20);
                     linesLabel.HorizontalTextAlignment = TextAlignment.Start;
-                    Label cashTotalLabel = MakeLabel("£" + App.SavedLines[DeploymentName][line].Sum(x => x.Amount.Value), 30);
+                    Label cashTotalLabel = MakeLabel("£" + App.SavedLines[DeploymentName][line].Sum(x => x.Amount.Value).ToString("##.00"), 30);
                     cashTotalLabel.HorizontalTextAlignment = TextAlignment.End;
 
                     #endregion
@@ -109,6 +107,13 @@ namespace Daily_Subsistence_Tracker
                         bool answer = await DisplayAlert("Warning", "Are you sure you want to delete " + line.ToString() + "?\n This cannot be reversed.", "Yes", "No");
                         if (answer == true)
                         {
+                            foreach (MyItem item in App.SavedLines[DeploymentName][line])
+                            {
+                                if (item.Reciept != null)
+                                {
+                                    File.Delete(item.Reciept); // Remove cached images.
+                                }
+                            }
                             App.SavedLines[DeploymentName].Remove(line);
                             Content = drawLayout();
                         }
@@ -155,11 +160,14 @@ namespace Daily_Subsistence_Tracker
 
         private Grid HeaderGrid()
         {
-            Label emailLabel = MakeLabel("e",20);
+            Label emailLabel = MakeLabel(FontAwesomeIcons.FontAwesomeIcons.Envelope, 28);
+            emailLabel.FontFamily = "fa.otf#fa";
+            emailLabel.HorizontalTextAlignment = TextAlignment.Center;
+            emailLabel.Padding = 0;
             TapGestureRecognizer tap1 = new TapGestureRecognizer();
             tap1.Tapped += async (s, e) =>
             {
-                await Email.ComposeAsync("Your expenses report for " + DeploymentName + ", from Watch&Shoot UK.", App.SavedLines[DeploymentName].ToString(), "markwileman@ymail.com");
+                await EmailClass.SendEmail(DeploymentName + " expenses report.", create_email_format(), new List<string>() { "" }, get_images());
             };
             emailLabel.GestureRecognizers.Add(tap1);
 
@@ -172,14 +180,10 @@ namespace Daily_Subsistence_Tracker
                 TextColor = Color.WhiteSmoke,
                 VerticalTextAlignment = TextAlignment.Center,
                 Padding = 10
-            }, 0, 9, 0, 1);
-            grid.Children.Add(AddLine(), 8, 10, 0, 1);
-            grid.Children.Add(emailLabel, 6, 8, 0, 1);
+            }, 0, 6, 0, 1);
+            grid.Children.Add(emailLabel, 6, 7, 0, 1);
+            grid.Children.Add(AddLine(), 7, 8, 0, 1);
             return grid;
-        }
-        private Grid FooterGrid()
-        {
-            return new Grid { BackgroundColor = App.colours[0] };
         }
         private Label AddLine()
         {
@@ -199,28 +203,35 @@ namespace Daily_Subsistence_Tracker
             FileResult photo = null;
             string PhotoPath = null;
 
+
             #region Define elements
-            DatePicker dateEntry = new DatePicker { 
-                Date = DateTime.Now  
+            DatePicker dateEntry = new DatePicker
+            {
+                Date = DateTime.Now
             };
-            TimePicker timeEntry = new TimePicker { 
-                Time = DateTime.Now.TimeOfDay, 
-                HorizontalOptions = LayoutOptions.End 
+            TimePicker timeEntry = new TimePicker
+            {
+                Time = DateTime.Now.TimeOfDay,
+                HorizontalOptions = LayoutOptions.End
             };
-            Picker currencyPicker = new Picker {
+            Picker currencyPicker = new Picker
+            {
                 ItemsSource = new List<string>() { "£", "€", "$" },
                 SelectedIndex = 0,
                 HorizontalTextAlignment = TextAlignment.Start,
                 FontAttributes = FontAttributes.Bold,
             };
-            Entry amountEntry = new Entry { 
-                Keyboard = Keyboard.Numeric 
+            Entry amountEntry = new Entry
+            {
+                Keyboard = Keyboard.Numeric
             };
-            Entry descEntry = new Entry { 
+            Entry descEntry = new Entry
+            {
                 Placeholder = "e.g. Lunch at services"
             };
 
-            Label recieptButton = new Label { 
+            Label recieptButton = new Label
+            {
                 Text = FontAwesomeIcons.FontAwesomeIcons.Camera,
                 FontSize = 20,
                 HorizontalTextAlignment = TextAlignment.Center,
@@ -234,24 +245,28 @@ namespace Daily_Subsistence_Tracker
                 photo = await MediaPicker.CapturePhotoAsync();
                 if (photo != null)
                 {
-                    var newFile = Path.Combine(FileSystem.CacheDirectory, photo.FileName);
+                    var newFile = Path.Combine(FileSystem.CacheDirectory, dateEntry.Date.ToString("ddMMM_") + get_count() + ".jpg");
                     using (var stream = await photo.OpenReadAsync())
                     using (var newStream = File.OpenWrite(newFile))
                         await stream.CopyToAsync(newStream);
                     PhotoPath = newFile;
                 }
+
             };
+
             recieptButton.GestureRecognizers.Add(tap);
             #endregion
 
             #region Enter Button 
-            Label enterButton = new Label { 
+            Label enterButton = new Label
+            {
                 Text = "Add",
                 FontSize = 30,
                 VerticalTextAlignment = TextAlignment.Center,
                 HorizontalTextAlignment = TextAlignment.Center,
                 TextColor = Color.WhiteSmoke,
-                FontAttributes = FontAttributes.Bold};
+                FontAttributes = FontAttributes.Bold
+            };
 
             TapGestureRecognizer tap1 = new TapGestureRecognizer();
             tap1.Tapped += (s, e) =>
@@ -269,19 +284,28 @@ namespace Daily_Subsistence_Tracker
                         Time = timeEntry.Time.Hours.ToString() + ":" + timeEntry.Time.Minutes.ToString(),
                         Amount = new KeyValuePair<string, decimal>(currencyPicker.SelectedItem.ToString(), dcml),
                         Reciept = PhotoPath,
-                        Desc = descEntry.Text
+                        Desc = descEntry.Text,
+                        Line = get_count()
                     };
 
                     if (App.SavedLines[DeploymentName].ContainsKey(dateEntry.Date))
                     {
                         App.SavedLines[DeploymentName][dateEntry.Date].Add(newLineList);
+                        App.UpdateCache();
                     }
                     else
                     {
                         App.SavedLines[DeploymentName].Add(dateEntry.Date, new List<MyItem>() { newLineList });
+                        App.UpdateCache();
                     }
                     Content = drawLayout();
                 }
+
+
+                Application.Current.Properties["DataCache"] = JsonConvert.SerializeObject(App.SavedLines);
+
+
+
             };
 
             enterButton.GestureRecognizers.Add(tap1);
@@ -303,7 +327,7 @@ namespace Daily_Subsistence_Tracker
             recieptGrid.Children.Add(recieptButton, 5, 6, 0, 1);
             grid.Children.Add(recieptGrid, 1, 3, 1, 2);
 
-            grid.Children.Add(MakeLabel("Remarks",20), 0, 1, 2, 3);
+            grid.Children.Add(MakeLabel("Remarks", 20), 0, 1, 2, 3);
             grid.Children.Add(descEntry, 1, 3, 2, 3);
 
             grid.Children.Add(new Frame
@@ -313,17 +337,40 @@ namespace Daily_Subsistence_Tracker
                 Padding = 0,
                 Margin = 0,
                 BackgroundColor = Color.LimeGreen
-            },0,3,3,4);
+            }, 0, 3, 3, 4);
             #endregion
 
-            return new StackLayout { Padding = 10, Children = { 
+            #region Counter
+            int get_count()
+            {
+                int i;
+
+                if (App.SavedLines[DeploymentName].ContainsKey(dateEntry.Date))
+                {
+                    i = App.SavedLines[DeploymentName][dateEntry.Date].Count() + 1;
+                }
+                else
+                {
+                    i = 1;
+                }
+
+                return i;
+            }
+            #endregion
+
+            return new StackLayout
+            {
+                Padding = 10,
+                Children = {
                     MakeLabel("Add new expenses line", 25),
                     new BoxView {Color = Color.WhiteSmoke, HeightRequest = 1},
-                    grid 
-                }, BackgroundColor = App.GetRandomColour()};
+                    grid
+                },
+                BackgroundColor = App.GetRandomColour()
+            };
 
         }
-        private Label MakeLabel (string text, int size)
+        private Label MakeLabel(string text, int size)
         {
             return new Label
             {
@@ -336,5 +383,69 @@ namespace Daily_Subsistence_Tracker
                 Padding = 10
             };
         }
+        private string create_email_format()
+        {
+            List<string> myList = new List<string>();
+
+            myList.Add("Your expenses report for " + DeploymentName + ".\n");
+
+            string currency = "";
+            decimal deploymentTotal = 0;
+
+            foreach (KeyValuePair<DateTime, List<MyItem>> line in App.SavedLines[DeploymentName])
+            {
+                myList.Add(line.Key.ToLongDateString());
+                int i = 1;
+                decimal total = 0;
+                foreach (MyItem item in line.Value)
+                {
+                    string myDesc = "";
+                    string myReciept = "";
+                    if (item.Desc != null) { myDesc = item.Desc.ToString(); }
+
+                    myList.Add(i.ToString() + " / " + item.Time.ToString() + " / " + myDesc + " / " + item.Amount.Key.ToString() + item.Amount.Value.ToString("##.00"));
+
+                    i += 1;
+
+                    total = total + item.Amount.Value;
+
+                    currency = item.Amount.Key.ToString();
+                }
+                deploymentTotal = deploymentTotal + total;
+                myList.Add("Daily total: " + currency + total.ToString("##.00") + "\n");
+            }
+
+            string myString = "";
+            foreach (string str in myList)
+            {
+                myString = myString + str + "\n";
+            }
+
+            myString = myString + DeploymentName + " Total: " + currency + deploymentTotal.ToString("##.00") + "\n";
+            myString = myString + "\nExpense report provided by Watch&ShootUK, check our other apps on Google Play and the App Store.";
+
+            return myString;
+        }
+
+        private static List<EmailAttachment> get_images()
+        {
+            List<EmailAttachment> attachments = new List<EmailAttachment>();
+
+            foreach (KeyValuePair<DateTime, List<MyItem>> line in App.SavedLines[DeploymentName])
+            {
+                int i = 1;
+                foreach (MyItem item in line.Value)
+                {
+                    if (item.Reciept != null)
+                    {
+                        attachments.Add(new EmailAttachment(item.Reciept));
+                    }
+
+                    i += 1;
+                }
+            }
+            return attachments;
+        }
+
     }
 }

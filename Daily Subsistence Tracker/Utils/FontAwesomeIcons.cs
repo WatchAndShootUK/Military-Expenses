@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FontAwesomeIcons
+﻿namespace FontAwesomeIcons
 {
     /// <summary>
     /// The unicode values for all FontAwesome icons.

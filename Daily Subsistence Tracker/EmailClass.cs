@@ -6,9 +6,9 @@ using Xamarin.Essentials;
 
 namespace Daily_Subsistence_Tracker
 {
-	public class EmailClass
-{
-        public async Task SendEmail(string subject, string body, List<string> recipients)
+    public class EmailClass
+    {
+        public static async Task SendEmail(string subject, string body, List<string> recipients, List<EmailAttachment> attachments)
         {
             try
             {
@@ -17,9 +17,10 @@ namespace Daily_Subsistence_Tracker
                     Subject = subject,
                     Body = body,
                     To = recipients,
-                    //Cc = ccRecipients,
-                    //Bcc = bccRecipients
+                    Attachments = attachments
                 };
+
+
                 await Email.ComposeAsync(message);
             }
             catch (FeatureNotSupportedException fbsEx)

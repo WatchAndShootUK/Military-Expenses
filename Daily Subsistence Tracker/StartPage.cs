@@ -1,5 +1,4 @@
-﻿using Rg.Plugins.Popup.Services;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Xamarin.Forms;
 
@@ -27,10 +26,11 @@ namespace Daily_Subsistence_Tracker
             }
             else
             {
+
                 thisLayout.Children.Add(new Label
                 {
-                    Text = "No deployments to show.\nTo add a new deployment tap the '+' in the header.",
-                    FontSize = 25,
+                    Text = "Welcome to the Military Expenses tracker, by Watch & Shoot Developments.\n\nYou currently have no deployments to show.\n\nTo add a new deployment tap the '+' in the header.",
+                    FontSize = 20,
                     TextColor = Color.WhiteSmoke,
                     FontAttributes = FontAttributes.Bold,
                     Padding = 10,
@@ -39,53 +39,27 @@ namespace Daily_Subsistence_Tracker
                 });
             }
 
-            masterGrid.Children.Add(HeaderGrid(),0,1,0,1);
-            masterGrid.Children.Add(new ScrollView { Content = thisLayout },0,1,1,9);
-            masterGrid.Children.Add(FooterGrid(),0,1,9,10);
+            masterGrid.Children.Add(HeaderGrid(), 0, 1, 0, 1);
+            masterGrid.Children.Add(new ScrollView { Content = thisLayout }, 0, 1, 1, 9);
+            masterGrid.Children.Add(App.FooterGrid(), 0, 1, 9, 10);
 
             return masterGrid;
         }
         private Grid HeaderGrid()
         {
             Grid grid = new Grid { HeightRequest = App.ScreenHeight * 0.1, BackgroundColor = App.colours[0] };
-            grid.Children.Add(new Label { 
-                Text = "Military Expenses Tracker", 
-                FontAttributes = FontAttributes.Bold,
-                FontSize = 25, 
-                TextColor = Color.WhiteSmoke, 
-                VerticalTextAlignment = TextAlignment.Center, 
-                Padding = 10 
-            },0,9,0,1);
-            grid.Children.Add(AddSmallNewDeploymentButton(), 8, 10,0,1);
-            return grid;
-        }
-        private Grid FooterGrid()
-        {
-            return new Grid { BackgroundColor = App.colours[0] };
-        }
-        private Frame AddNewDeploymentButton()
-        {
-            Frame addLabel = DrawButton("Add new deployment", Color.LimeGreen);
-            TapGestureRecognizer tap = new TapGestureRecognizer();
-            tap.Tapped += async (s, e) =>
+            grid.Children.Add(new Label
             {
-                string result = await DisplayPromptAsync("Add Deployment", "Enter deployment name.", "Ok", "Cancel", "", 20);
-                if (result != "")
-                {
-                    if (App.SavedLines.ContainsKey(result))
-                    {
-                        DisplayAlert(null, result + " has already been added!", "OK");
-                    }
-                    else
-                    {
-                        App.SavedLines.Add(result, new Dictionary<DateTime, List<MyItem>>());
-                        Content = drawLayout();
-                    }
-                }
-            };
-            addLabel.GestureRecognizers.Add(tap);
-
-            return addLabel;
+                Text = "Military Expenses",
+                FontAttributes = FontAttributes.Bold,
+                FontSize = 25,
+                TextColor = Color.WhiteSmoke,
+                VerticalTextAlignment = TextAlignment.Center,
+                Padding = 10
+            }, 0, 4, 0, 1);
+            grid.Children.Add(CalculatorButton(), 4, 5, 0, 1);
+            grid.Children.Add(AddSmallNewDeploymentButton(), 5, 6, 0, 1);
+            return grid;
         }
         private Label AddSmallNewDeploymentButton()
         {
@@ -93,7 +67,7 @@ namespace Daily_Subsistence_Tracker
             TapGestureRecognizer tap = new TapGestureRecognizer();
             tap.Tapped += async (s, e) =>
             {
-                string result = await DisplayPromptAsync("Add Deployment", "Enter deployment name.", "Ok", "Cancel", "", 20);
+                string result = await DisplayPromptAsync("Add Deployment", "Enter deployment name.", "Ok", "Cancel", "", 17);
                 if (result != null && result != "")
                 {
                     if (App.SavedLines.ContainsKey(result))
@@ -103,6 +77,7 @@ namespace Daily_Subsistence_Tracker
                     else
                     {
                         App.SavedLines.Add(result, new Dictionary<DateTime, List<MyItem>>());
+                        App.UpdateCache();
                         Content = drawLayout();
                     }
                 }
@@ -152,9 +127,13 @@ namespace Daily_Subsistence_Tracker
                 bool answer = await DisplayAlert("Warning", "Are you sure you want to delete " + text + "?\n This cannot be reversed.", "Yes", "No");
                 if (answer == true)
                 {
+                    Xamarin.Forms.Application.Current.Properties.Clear();
                     App.SavedLines.Remove(text);
+                    App.UpdateCache();
                     Content = drawLayout();
                 }
+
+
 
             };
             deleteLabel.GestureRecognizers.Add(tap1);
@@ -176,13 +155,14 @@ namespace Daily_Subsistence_Tracker
             TapGestureRecognizer tap2 = new TapGestureRecognizer();
             tap2.Tapped += async (s, e) =>
             {
-                string answer = await DisplayPromptAsync(null, "Update deployment name","OK","Cancel","",20,Keyboard.Plain,text);
+                string answer = await DisplayPromptAsync(null, "Update deployment name", "OK", "Cancel", "", 20, Keyboard.Plain, text);
                 if (answer != null)
                 {
                     if (answer != text && answer != "")
                     {
                         App.SavedLines.Add(answer, App.SavedLines[text]);
                         App.SavedLines.Remove(text);
+                        App.UpdateCache();
                         Content = drawLayout();
                     }
                 }
@@ -208,23 +188,19 @@ namespace Daily_Subsistence_Tracker
 
             return new Frame { CornerRadius = 10, Margin = 5, Padding = 0, Content = grid };
         }
-        private Frame DrawButton(string text, Color colour)
+
+        private Label CalculatorButton()
         {
-            #region Button
-            Label thisLabel = new Label
+            Label thisLabel = new Label { Text = FontAwesomeIcons.FontAwesomeIcons.Calculator, FontFamily = "fa.otf#fa", FontSize = 30, TextColor = Color.WhiteSmoke, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
+            TapGestureRecognizer tap = new TapGestureRecognizer();
+            tap.Tapped += async (s, e) =>
             {
-                Text = text,
-                TextColor = Color.WhiteSmoke,
-                BackgroundColor = colour,
-                FontSize = 30,
-                FontAttributes = FontAttributes.Bold,
-                Padding = 10,
-                HorizontalTextAlignment = TextAlignment.Center,
-                VerticalTextAlignment = TextAlignment.Center
+
+                Navigation.PushAsync(new MasterTabbedPage());
             };
-            #endregion
-            
-            return new Frame { CornerRadius = 10, Margin = 5, Padding = 0, Content = thisLabel };
+            thisLabel.GestureRecognizers.Add(tap);
+
+            return thisLabel;
         }
     }
-}   
+}
