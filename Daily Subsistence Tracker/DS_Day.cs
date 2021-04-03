@@ -15,7 +15,7 @@ namespace Daily_Subsistence_Tracker
             DeploymentName = thisDeployment;
             DayName = thisDay;
 
-            NavigationPage.SetHasNavigationBar(this, false);
+            //NavigationPage.SetHasNavigationBar(this, false);
             BackgroundColor = App.colours[2];
             Content = DrawLayout(thisDeployment, thisDay);
         }
@@ -213,6 +213,8 @@ namespace Daily_Subsistence_Tracker
             }, 0, 10, 1, 2);
 
             return grid;
+
+
         }
     }
 }

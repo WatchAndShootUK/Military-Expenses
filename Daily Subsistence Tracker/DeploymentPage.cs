@@ -15,7 +15,7 @@ namespace Daily_Subsistence_Tracker
 
         public DeploymentPage(string input_string)
         {
-            NavigationPage.SetHasNavigationBar(this, false);
+            //NavigationPage.SetHasNavigationBar(this, false);
             BackgroundColor = App.colours[2];
             DeploymentName = input_string;
         }
@@ -251,6 +251,10 @@ namespace Daily_Subsistence_Tracker
                         await stream.CopyToAsync(newStream);
                     PhotoPath = newFile;
                 }
+                else
+                {
+                    DisplayAlert("Error", "No photo taken, please try again.", "Ok");
+                }
 
             };
 
@@ -447,5 +451,27 @@ namespace Daily_Subsistence_Tracker
             return attachments;
         }
 
+        public static Label BackButton()
+        {
+            Label thisLabel = new Label
+            {
+                FontSize = 20,
+                FontFamily = "fa.otf#fa",
+                HorizontalTextAlignment = TextAlignment.Center,
+                VerticalTextAlignment = TextAlignment.Center,
+                Text = FontAwesomeIcons.FontAwesomeIcons.ArrowAltLeft,
+                FontAttributes = FontAttributes.Bold
+            };
+
+            TapGestureRecognizer tap = new TapGestureRecognizer();
+            tap.Tapped += async (s, e) =>
+            {
+            };
+
+            thisLabel.GestureRecognizers.Add(tap);
+
+            return thisLabel;
+
+        }
     }
 }

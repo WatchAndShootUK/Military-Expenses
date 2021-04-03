@@ -39,6 +39,8 @@ namespace Daily_Subsistence_Tracker
             OnStart();
             MainPage = new NavigationPage(new StartPage());
         }
+
+
         public static Color GetRandomColour()
         {
             Random r = new Random();

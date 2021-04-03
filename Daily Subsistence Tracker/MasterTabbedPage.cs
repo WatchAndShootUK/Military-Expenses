@@ -10,9 +10,10 @@ namespace Daily_Subsistence_Tracker
         public MasterTabbedPage()
         {
             ((NavigationPage)Application.Current.MainPage).BarBackgroundColor = App.colours[0];
+            ((NavigationPage)Application.Current.MainPage).BarTextColor = Color.WhiteSmoke;
             this.BarBackgroundColor = App.colours[0];
             Title = "Military Allowances Calculator";
-            Children.Add(new CalcPages.lsa_calc());
+            Children.Add(new CalcPages.mylsa_calc());
             Children.Add(new CalcPages.mma_calc());
         }
     }

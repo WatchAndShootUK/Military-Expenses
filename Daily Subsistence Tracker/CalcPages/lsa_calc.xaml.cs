@@ -5,16 +5,17 @@ using Xamarin.Forms;
 
 namespace Daily_Subsistence_Tracker.CalcPages
 {
-    public class lsa_calc : ContentPage
+    public class mylsa_calc: ContentPage
     {
         Picker myPicker { get; set; }
         Entry myEntry { get; set; }
         Label resultLabel { get; set; }
 
-        public lsa_calc()
+        public mylsa_calc()
         {
             resultLabel = MakeLabel("", 25);
             Title = "LSA";
+            IconImageSource = "";
             Content = new ScrollView
             {
                 Content = new StackLayout
