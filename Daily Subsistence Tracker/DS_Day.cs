@@ -15,8 +15,8 @@ namespace Daily_Subsistence_Tracker
             DeploymentName = thisDeployment;
             DayName = thisDay;
 
-            //NavigationPage.SetHasNavigationBar(this, false);
             BackgroundColor = App.colours[2];
+
             Content = DrawLayout(thisDeployment, thisDay);
         }
 
@@ -94,13 +94,16 @@ namespace Daily_Subsistence_Tracker
                 #endregion
 
                 thisLayout.Children.Add(grid);
-
+            
             }
 
             Grid masterGrid = new Grid { Padding = 0, RowSpacing = 0, ColumnSpacing = 0, Margin = 0 };
-            masterGrid.Children.Add(HeaderGrid(), 0, 1, 0, 1);
-            masterGrid.Children.Add(new ScrollView { Content = thisLayout }, 0, 1, 1, 9);
-            masterGrid.Children.Add(App.FooterGrid(), 0, 1, 9, 10);
+
+                (App.Current.MainPage as NavigationPage).BarBackgroundColor = App.colours[0];
+                (App.Current.MainPage as NavigationPage).BarTextColor = Color.WhiteSmoke;
+                Title = DeploymentName + ": " + DayName.ToString("M");
+                masterGrid.Children.Add(new ScrollView { Content = thisLayout }, 0, 1, 0, 9);
+                masterGrid.Children.Add(App.FooterGrid(), 0, 1, 9, 10);
 
             return masterGrid;
         }
@@ -164,8 +167,7 @@ namespace Daily_Subsistence_Tracker
                         Children =
                         {
                                 MakeLabel("Reciept Image"),
-                                thisImage,
-                                MakeLabel("Exit"),
+                                thisImage
                         }
                     }));
             };
@@ -191,30 +193,6 @@ namespace Daily_Subsistence_Tracker
                 BanLabel.InputTransparent = true;
             }
             return BanLabel;
-        }
-        private Grid HeaderGrid()
-        {
-            Grid grid = new Grid { Padding = 5, HeightRequest = App.ScreenHeight * 0.1, BackgroundColor = App.colours[0] };
-            grid.Children.Add(new Label
-            {
-                Text = DeploymentName,
-                FontAttributes = FontAttributes.Bold,
-                FontSize = 25,
-                TextColor = Color.WhiteSmoke,
-                VerticalTextAlignment = TextAlignment.Center
-            }, 0, 10, 0, 1);
-            grid.Children.Add(new Label
-            {
-                Text = DayName.ToLongDateString().ToString(),
-                FontAttributes = FontAttributes.Bold,
-                FontSize = 15,
-                TextColor = Color.WhiteSmoke,
-                VerticalTextAlignment = TextAlignment.Center
-            }, 0, 10, 1, 2);
-
-            return grid;
-
-
         }
     }
 }

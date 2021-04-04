@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 
@@ -11,23 +12,34 @@ namespace Daily_Subsistence_Tracker
 {
     public class DeploymentPage : ContentPage
     {
+        private bool photo_attempted;
+        private bool just_tapped = false;
+
         private static string DeploymentName { get; set; }
 
         public DeploymentPage(string input_string)
         {
-            //NavigationPage.SetHasNavigationBar(this, false);
+            (App.Current.MainPage as NavigationPage).BarBackgroundColor = App.colours[0];
+            (App.Current.MainPage as NavigationPage).BarTextColor = Color.WhiteSmoke;
+
             BackgroundColor = App.colours[2];
             DeploymentName = input_string;
         }
+
         protected override void OnAppearing()
         {
             Content = drawLayout();
-            //masterGrid.Children.Add(new ScrollView { Content = DrawThisLayout() }, 0, 1, 1, 9);
         }
 
         private Grid drawLayout()
         {
             Grid masterGrid = new Grid { RowSpacing = 0, ColumnSpacing = 0, Padding = 0, Margin = 0 };
+
+            if (Device.RuntimePlatform == Device.Android)
+            {
+                NavigationPage.SetHasNavigationBar(this, false);
+            }
+
             masterGrid.Children.Add(HeaderGrid(), 0, 1, 0, 1);
             masterGrid.Children.Add(new ScrollView { Content = DrawThisLayout() }, 0, 1, 1, 9);
             masterGrid.Children.Add(App.FooterGrid(), 0, 1, 9, 10);
@@ -104,7 +116,7 @@ namespace Daily_Subsistence_Tracker
                     TapGestureRecognizer tap1 = new TapGestureRecognizer();
                     tap1.Tapped += async (s, e) =>
                     {
-                        bool answer = await DisplayAlert("Warning", "Are you sure you want to delete " + line.ToString() + "?\n This cannot be reversed.", "Yes", "No");
+                        bool answer = await DisplayAlert("Warning", "Are you sure you want to delete " + line.ToString("M") + "?\n This cannot be reversed.", "Yes", "No");
                         if (answer == true)
                         {
                             foreach (MyItem item in App.SavedLines[DeploymentName][line])
@@ -239,12 +251,16 @@ namespace Daily_Subsistence_Tracker
                 TextColor = Color.WhiteSmoke,
                 FontFamily = "fa.otf#fa"
             };
+
+
+
             TapGestureRecognizer tap = new TapGestureRecognizer();
             tap.Tapped += async (s, e) =>
             {
                 photo = await MediaPicker.CapturePhotoAsync();
                 if (photo != null)
                 {
+                    photo_attempted = true;
                     var newFile = Path.Combine(FileSystem.CacheDirectory, dateEntry.Date.ToString("ddMMM_") + get_count() + ".jpg");
                     using (var stream = await photo.OpenReadAsync())
                     using (var newStream = File.OpenWrite(newFile))
@@ -273,42 +289,62 @@ namespace Daily_Subsistence_Tracker
             };
 
             TapGestureRecognizer tap1 = new TapGestureRecognizer();
-            tap1.Tapped += (s, e) =>
+            tap1.Tapped += async (s, e) =>
             {
-                if (amountEntry.Text == null)
+                if (just_tapped == true)
                 {
-                    DisplayAlert("Error", "You must enter a reciept amount in " + currencyPicker.SelectedItem + ".", "OK");
+                    await Task.Delay(1000);
+                    just_tapped = false;
                 }
                 else
                 {
-                    decimal dcml = Convert.ToDecimal(amountEntry.Text);
-                    PopupNavigation.PopAsync();
-                    MyItem newLineList = new MyItem()
-                    {
-                        Time = timeEntry.Time.Hours.ToString() + ":" + timeEntry.Time.Minutes.ToString(),
-                        Amount = new KeyValuePair<string, decimal>(currencyPicker.SelectedItem.ToString(), dcml),
-                        Reciept = PhotoPath,
-                        Desc = descEntry.Text,
-                        Line = get_count()
-                    };
+                    just_tapped = true;
+                    TapSuccess();
+                }
 
-                    if (App.SavedLines[DeploymentName].ContainsKey(dateEntry.Date))
+                void TapSuccess()
+                {
+                    if (amountEntry.Text == null)
                     {
-                        App.SavedLines[DeploymentName][dateEntry.Date].Add(newLineList);
-                        App.UpdateCache();
+                        DisplayAlert("Error", "You must enter a reciept amount in " + currencyPicker.SelectedItem + ".", "OK");
                     }
                     else
                     {
-                        App.SavedLines[DeploymentName].Add(dateEntry.Date, new List<MyItem>() { newLineList });
-                        App.UpdateCache();
+                        PopupNavigation.PopAsync();
+
+                        if (photo_attempted == true && PhotoPath == null) { DisplayAlert("Warning!", "Input failed!", "OK"); photo_attempted = false; } // Catches empty photo file if stream is laggy.
+                        else
+                        {
+                            photo_attempted = false;
+
+                            decimal dcml = Convert.ToDecimal(amountEntry.Text);
+                            MyItem newLineList = new MyItem()
+                            {
+                                Time = timeEntry.Time.Hours.ToString() + ":" + timeEntry.Time.Minutes.ToString(),
+                                Amount = new KeyValuePair<string, decimal>(currencyPicker.SelectedItem.ToString(), dcml),
+                                Reciept = PhotoPath,
+                                Desc = descEntry.Text,
+                                Line = get_count()
+                            };
+
+                            if (App.SavedLines[DeploymentName].ContainsKey(dateEntry.Date))
+                            {
+                                App.SavedLines[DeploymentName][dateEntry.Date].Add(newLineList);
+                                App.UpdateCache();
+                            }
+                            else
+                            {
+                                App.SavedLines[DeploymentName].Add(dateEntry.Date, new List<MyItem>() { newLineList });
+                                App.UpdateCache();
+                            }
+
+                            Content = drawLayout();
+
+                            Application.Current.Properties["DataCache"] = JsonConvert.SerializeObject(App.SavedLines);
+                        }
                     }
-                    Content = drawLayout();
+
                 }
-
-
-                Application.Current.Properties["DataCache"] = JsonConvert.SerializeObject(App.SavedLines);
-
-
 
             };
 
@@ -322,7 +358,6 @@ namespace Daily_Subsistence_Tracker
             grid.Children.Add(MakeLabel("DTG", 20), 0, 1, 0, 1);
             grid.Children.Add(dateEntry, 1, 3, 0, 1);
             grid.Children.Add(timeEntry, 2, 3, 0, 1);
-
 
             grid.Children.Add(MakeLabel("Reciept", 20), 0, 1, 1, 2);
             Grid recieptGrid = new Grid();

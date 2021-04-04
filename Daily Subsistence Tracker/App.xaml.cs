@@ -91,7 +91,18 @@ namespace Daily_Subsistence_Tracker
             TapGestureRecognizer tap = new TapGestureRecognizer();
             tap.Tapped += async (s, e) =>
             {
-                Device.OpenUri(new System.Uri("https://play.google.com/store/apps/developer?id=Watch%26Shoot"));
+                string url = "";
+
+                if (Device.OS == TargetPlatform.iOS)
+                {
+                    url = "http://appstore.com/watchandshootuk";
+                }
+                else
+                {
+                    url = "https://play.google.com/store/apps/developer?id=Watch%26Shoot";
+                }
+
+                Device.OpenUri(new System.Uri(url));
             };
 
             thisGrid.GestureRecognizers.Add(tap);

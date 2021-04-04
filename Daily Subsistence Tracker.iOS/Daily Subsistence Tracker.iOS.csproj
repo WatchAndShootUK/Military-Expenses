@@ -65,6 +65,8 @@
     <CodesignKey>iPhone Distribution: Mark Wileman (W64A963PTR)</CodesignKey>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <MtouchFloat32>false</MtouchFloat32>
+    <MtouchInterpreter>-all</MtouchInterpreter>
+    <CodesignProvision>watchandshoot_pp_MilitaryExpenses</CodesignProvision>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
     <AppExtensionDebugBundleId />
