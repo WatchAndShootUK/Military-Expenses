@@ -79,7 +79,7 @@ namespace Daily_Subsistence_Tracker
             thisGrid.Children.Add(logoGrid, 0, 1, 0, 1);
             thisGrid.Children.Add(new Label
             {
-                Text = "Click here for more applications by Watch & Shoot Developments. Avaliable on Android and iOS.",
+                Text = "Click here for more applications by Watch & Shoot Developments.",
                 TextColor = GetRandomColour(),
                 HorizontalTextAlignment = TextAlignment.End,
                 VerticalTextAlignment = TextAlignment.Center,
