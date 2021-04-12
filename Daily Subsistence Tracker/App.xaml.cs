@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace Daily_Subsistence_Tracker
@@ -66,52 +67,80 @@ namespace Daily_Subsistence_Tracker
         }
         public static Grid FooterGrid()
         {
-            Grid logoGrid = new Grid
+            Random r = new Random();
+
+            if (r.Next(2) == 1)
+                return FCgrid();
+            else
+                return WASgrid();
+
+            Grid WASgrid()
             {
-                Children =
+                Grid logoGrid = new Grid
+                {
+                    Children =
                 {
                     new Label {TextColor = GetRandomColour(), Text = FontAwesomeIcons.FontAwesomeIcons.CircleNotch, FontFamily = "fa.otf#fa", FontSize = 50, VerticalTextAlignment = TextAlignment.Center, HorizontalTextAlignment = TextAlignment.Center, FontAttributes = FontAttributes.None },
                     new Label {TextColor = GetRandomColour(), Text = FontAwesomeIcons.FontAwesomeIcons.Skull, FontFamily = "fa.otf#fa", FontSize = 20, VerticalTextAlignment = TextAlignment.Center, HorizontalTextAlignment = TextAlignment.Center },
                 }
-            };
+                };
 
-            Grid thisGrid = new Grid { BackgroundColor = App.colours[0] };
-            thisGrid.Children.Add(logoGrid, 0, 1, 0, 1);
-            thisGrid.Children.Add(new Label
-            {
-                Text = "Click here for more applications by Watch & Shoot Developments.",
-                TextColor = GetRandomColour(),
-                HorizontalTextAlignment = TextAlignment.End,
-                VerticalTextAlignment = TextAlignment.Center,
-                FontSize = 15,
-                Padding = 10,
-                FontAttributes = FontAttributes.Bold
-            }, 1, 5, 0, 1);
-
-            TapGestureRecognizer tap = new TapGestureRecognizer();
-            tap.Tapped += async (s, e) =>
-            {
-                string url = "";
-
-                if (Device.OS == TargetPlatform.iOS)
+                Grid thisGrid = new Grid { BackgroundColor = App.colours[0] };
+                thisGrid.Children.Add(logoGrid, 0, 1, 0, 1);
+                thisGrid.Children.Add(new Label
                 {
-                    url = "http://appstore.com/watchandshootuk";
-                }
-                else
+                    Text = "Click here for more applications by Watch & Shoot Developments.",
+                    TextColor = GetRandomColour(),
+                    HorizontalTextAlignment = TextAlignment.End,
+                    VerticalTextAlignment = TextAlignment.Center,
+                    FontSize = 15,
+                    Padding = 10,
+                    FontAttributes = FontAttributes.Bold
+                }, 1, 5, 0, 1);
+
+                TapGestureRecognizer tap = new TapGestureRecognizer();
+                tap.Tapped += async (s, e) =>
                 {
-                    url = "https://play.google.com/store/apps/developer?id=Watch%26Shoot";
-                }
+                    string url = "";
 
-                Device.OpenUri(new System.Uri(url));
+                    if (Device.OS == TargetPlatform.iOS)
+                    {
+                        url = "https://apps.apple.com/us/developer/mark-wileman/id1561466869";
+                    }
+                    else
+                    {
+                        url = "https://play.google.com/store/apps/developer?id=Watch%26Shoot";
+                    }
+
+                    Device.OpenUri(new System.Uri(url));
+                };
+
+                thisGrid.GestureRecognizers.Add(tap);
+
+                return thisGrid;
             };
+            Grid FCgrid()
+            {
+                Grid thisGrid = new Grid();
+                thisGrid.Children.Add(new Image { Source = "fclogo.png", Aspect = Aspect.Fill }, 0, 1, 0, 1);
 
-            thisGrid.GestureRecognizers.Add(tap);
-            return thisGrid;
+                TapGestureRecognizer tap = new TapGestureRecognizer();
+                tap.Tapped += async (s, e) =>
+                {
+                    string url = "https://forcescompare.uk/";
+
+                    Device.OpenUri(new System.Uri(url));
+                };
+
+                thisGrid.GestureRecognizers.Add(tap);
+                return thisGrid;
+            };
         }
         public static void UpdateCache()
         {
             Application.Current.Properties.Clear();
             Application.Current.Properties["DataCache"] = JsonConvert.SerializeObject(App.SavedLines);
         }
+
     }
 }

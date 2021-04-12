@@ -13,6 +13,7 @@ namespace Daily_Subsistence_Tracker
     public class DeploymentPage : ContentPage
     {
         private bool photo_attempted;
+        private string directory;
         private bool just_tapped = false;
 
         private static string DeploymentName { get; set; }
@@ -221,6 +222,7 @@ namespace Daily_Subsistence_Tracker
             {
                 Date = DateTime.Now
             };
+
             TimePicker timeEntry = new TimePicker
             {
                 Time = DateTime.Now.TimeOfDay,
@@ -260,6 +262,8 @@ namespace Daily_Subsistence_Tracker
                 photo = await MediaPicker.CapturePhotoAsync();
                 if (photo != null)
                 {
+                    dateEntry.IsEnabled = false;
+
                     photo_attempted = true;
                     var newFile = Path.Combine(FileSystem.CacheDirectory, dateEntry.Date.ToString("ddMMM_") + get_count() + ".jpg");
                     using (var stream = await photo.OpenReadAsync())
@@ -311,7 +315,6 @@ namespace Daily_Subsistence_Tracker
                     else
                     {
                         PopupNavigation.PopAsync();
-
                         if (photo_attempted == true && PhotoPath == null) { DisplayAlert("Warning!", "Input failed!", "OK"); photo_attempted = false; } // Catches empty photo file if stream is laggy.
                         else
                         {

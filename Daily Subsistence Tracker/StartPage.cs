@@ -188,7 +188,6 @@ namespace Daily_Subsistence_Tracker
 
             return new Frame { CornerRadius = 10, Margin = 5, Padding = 0, Content = grid };
         }
-
         private Label CalculatorButton()
         {
             Label thisLabel = new Label { Text = FontAwesomeIcons.FontAwesomeIcons.Calculator, FontFamily = "fa.otf#fa", FontSize = 30, TextColor = Color.WhiteSmoke, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };

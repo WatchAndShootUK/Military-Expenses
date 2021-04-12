@@ -12,7 +12,10 @@ namespace Daily_Subsistence_Tracker.CalcPages
         {
             resultLabel = MakeLabel("", 25);
             Title = "MMA";
-            Content = new StackLayout
+            IconImageSource = new FontImageSource { FontFamily = "fa.otf#fa", Glyph = FontAwesomeIcons.FontAwesomeIcons.Car };
+
+            Grid thisGrid = new Grid { RowSpacing = 0 };
+            thisGrid.Children.Add(new StackLayout
             {
                 Padding = new Thickness(20, 20, 20, 20),
                 BackgroundColor = App.colours[2],
@@ -25,7 +28,11 @@ namespace Daily_Subsistence_Tracker.CalcPages
                 calcButton(),
                 resultLabel
             }
-            };
+            }, 0, 1, 0, 9);
+            thisGrid.Children.Add(App.FooterGrid(), 0, 1, 9, 10);
+
+            Content = thisGrid;
+
         }
         private Label MakeLabel(string text, int size)
         {
@@ -57,7 +64,11 @@ namespace Daily_Subsistence_Tracker.CalcPages
             TapGestureRecognizer tap = new TapGestureRecognizer();
             tap.Tapped += (s, e) =>
             {
-                if (myEntry.Text != null)
+                if (myEntry.Text == null || Convert.ToInt32(myEntry.Text) < 10)
+                {
+                    DisplayAlert("Error", "Journey must be a minimum of 10 miles", "Ok");
+                }
+                else
                 {
                     resultLabel.Text = "A journey of " + (Convert.ToInt32(myEntry.Text).ToString() + " miles is authorised an MMA payment of\n\n£" + ((Convert.ToInt32(myEntry.Text) - 6) * 0.25).ToString("##.00"));
                 }
@@ -82,6 +93,9 @@ namespace Daily_Subsistence_Tracker.CalcPages
                 Keyboard = Keyboard.Numeric,
                 TextColor = Color.WhiteSmoke,
                 HorizontalTextAlignment = TextAlignment.Center,
+                BackgroundColor = Color.Black,
+                Placeholder = "        ",
+                Margin = 10,
                 FontSize = 15
             };
 

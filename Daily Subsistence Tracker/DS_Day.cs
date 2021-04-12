@@ -166,7 +166,7 @@ namespace Daily_Subsistence_Tracker
                         BackgroundColor = App.GetRandomColour(),
                         Children =
                         {
-                                MakeLabel("Reciept Image"),
+                                MakeLabel("Reciept Image (" + path.ToString() + ")"),
                                 thisImage
                         }
                     }));

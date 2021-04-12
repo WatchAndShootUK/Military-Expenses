@@ -10,13 +10,16 @@ namespace Daily_Subsistence_Tracker.CalcPages
         Picker myPicker { get; set; }
         Entry myEntry { get; set; }
         Label resultLabel { get; set; }
-
+        int days { get; set; }
         public mylsa_calc()
         {
             resultLabel = MakeLabel("", 25);
             Title = "LSA";
-            IconImageSource = "";
-            Content = new ScrollView
+            IconImageSource = new FontImageSource { FontFamily = "fa.otf#fa", Glyph = FontAwesomeIcons.FontAwesomeIcons.Plane };
+
+            Grid thisGrid = new Grid { RowSpacing = 0 };
+
+            thisGrid.Children.Add(new ScrollView
             {
                 Content = new StackLayout
                 {
@@ -31,12 +34,15 @@ namespace Daily_Subsistence_Tracker.CalcPages
                 MakeLabel("Deployment length (days):",18),
                 dayEntry(),
                 calcButton(),
-                resultLabel
+                resultLabel,
+                new BoxView()
             }
                 }
-            };
-        }
+            }, 0, 1, 0, 9);
+            thisGrid.Children.Add(App.FooterGrid(), 0, 1, 9, 10);
 
+            Content = thisGrid;
+        }
         private Frame calcButton()
         {
             Label thisLabel = new Label
@@ -67,16 +73,19 @@ namespace Daily_Subsistence_Tracker.CalcPages
                 Margin = 0
             };
         }
-
         private Entry dayEntry()
         {
             myEntry = new Entry
             {
                 Keyboard = Keyboard.Numeric,
+                BackgroundColor = Color.Black,
                 TextColor = Color.WhiteSmoke,
                 HorizontalTextAlignment = TextAlignment.Center,
-                FontSize = 15
+                FontSize = 15,
+                Margin = 10
             };
+
+            myEntry.TextChanged += (s, e) => { if (e.NewTextValue != "") { days = Convert.ToInt32(e.NewTextValue); } };
 
             return myEntry;
         }
@@ -105,10 +114,12 @@ namespace Daily_Subsistence_Tracker.CalcPages
 
             myPicker = new Picker
             {
+                BackgroundColor = Color.Black,
                 ItemsSource = myList,
                 TextColor = Color.WhiteSmoke,
                 SelectedIndex = 0,
                 HorizontalTextAlignment = TextAlignment.Center,
+                Margin = 10,
                 FontSize = 15
             };
 
@@ -127,7 +138,6 @@ namespace Daily_Subsistence_Tracker.CalcPages
                 Padding = 10
             };
         }
-
         private void calculate_LSA()
         {
             List<double> LSAlevels = new List<double>()
@@ -151,13 +161,12 @@ namespace Daily_Subsistence_Tracker.CalcPages
                 34.75
             };
 
-            if (myPicker.SelectedIndex != 0 && myEntry.Text != null)
+            if (myPicker.SelectedIndex != 0 || days != null)
             {
-                double result = LSAlevels[myPicker.SelectedIndex] * Convert.ToDouble(myEntry.Text);
-                resultLabel.Text = "Deploying for " + myEntry.Text.ToString() + " days at LSA level " + myPicker.SelectedIndex.ToString() + " will earn (pre tax):\n\n£" + result.ToString("##.00");
+                decimal result = (decimal)LSAlevels[myPicker.SelectedIndex] * days;
+
+                resultLabel.Text = "Deploying for " + days.ToString() + " days at LSA level " + myPicker.SelectedIndex.ToString() + " will earn (pre tax): £" + result.ToString("##.00");
             }
         }
-
-
     }
 }
